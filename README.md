@@ -1,5 +1,7 @@
 # React + Vite
 
+Ref - https://github.com/hiteshchoudhary/chai-aur-react/tree/main/12MegaBlog
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
