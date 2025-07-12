@@ -1,12 +1,12 @@
 import React, { useEffect, useCallback } from "react";
-import { useFrom } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { Button, Input, Select, RTE } from '../index'
 import appwriteService from '../../appwrite/config'
 import { useNavigate } from 'react-router-dom'
 import { useSelector } from "react-redux";
 
 const PostForm = ({ post }) => {
-    const { register, handleSubmit, watch, setValue, getValues } = useFrom({
+    const { register, handleSubmit, watch, setValue, getValues } = useForm({
         defaultValues: {
             title: post?.title || '',
             content: post?.slug || '',
