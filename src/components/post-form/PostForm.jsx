@@ -6,10 +6,11 @@ import { useNavigate } from 'react-router-dom'
 import { useSelector } from "react-redux";
 
 const PostForm = ({ post }) => {
-    const { register, handleSubmit, watch, setValue, getValues } = useForm({
+
+    const { register, handleSubmit, watch, setValue, getValues, control } = useForm({
         defaultValues: {
             title: post?.title || '',
-            content: post?.slug || '',
+            slug: post?.slug || '',
             tag: post?.tag || [],
             status: post?.status || 'active',
             content: post?.content || '',
@@ -17,40 +18,52 @@ const PostForm = ({ post }) => {
     })
 
     const navigate = useNavigate()
-    const userData = useSelector(state => state.user.userData)
+    const userData = useSelector((state) => state.user?.userData || null)
+
+
     const submit = async (data) => {
+
+
         if (post) {
-            const file = data.image[0] ? appwriteService.uploadFile(data.image[0]) : null
+            const file = data.image[0] ? await appwriteService.uploadFile(data.image[0]) : null;
 
             if (file) {
-                appwriteService.deleteFile(post.blogimage)
+                await appwriteService.deleteFile(post.blogimage);
             }
 
             const dbPost = await appwriteService.updatePost(post.$id, {
                 ...data,
-                blogimage: file ? file.$id : post,
-            })
+                blogimage: file ? file.$id : post.blogimage,
+            });
 
             if (dbPost) {
-                navigate(`/post/${dbPost.$id}`)
+                navigate(`/post/${dbPost.$id}`);
             }
         } else {
-            const file = await appwriteService.uploadFile(data.image[0]);
+            const file = await appwriteService.uploadFile(data.image[0]); // ✅ await added
 
             if (file) {
-                const fileId = file.$id
-                data.blogimage = fileId
+                const fileId = file.$id;
+                data.blogimage = fileId;
+
+                if (!userData || !userData.$id) {
+                    alert("Please login to submit a post.");
+                    return;
+                }
+
                 const dbPost = await appwriteService.createPost({
                     ...data,
                     userId: userData.$id,
-                })
+                });
 
                 if (dbPost) {
-                    navigate(`/post/${dbPost.$id}`)
+                    navigate(`/post/${dbPost.$id}`);
                 }
             }
         }
-    }
+
+    };
+
 
     const slugTransform = useCallback((value) => {
         if (value && typeof value === 'string')
@@ -64,19 +77,19 @@ const PostForm = ({ post }) => {
     }, [])
 
     useEffect(() => {
-        const subscription = watch((value, {name}) => {
+        const subscription = watch((value, { name }) => {
             if (name === 'title') {
-                setValue('slug', slugTransform(value.title, {shouldValidate: true}))
+                setValue('slug', slugTransform(value.title, { shouldValidate: true }))
             }
         })
 
-        return() => {
+        return () => {
             subscription.unsubscribe()
         }
     }, [watch, slugTransform, setValue])
 
     return (
-         <form onSubmit={handleSubmit(submit)} className="flex flex-wrap">
+        <form onSubmit={handleSubmit(submit)} className="flex flex-wrap">
             <div className="w-2/3 px-2">
                 <Input
                     label="Title :"
